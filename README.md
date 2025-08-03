@@ -2,7 +2,9 @@
 
 1. Install Poetry: https://python-poetry.org/docs/#installation
 2. Clone this repo
-3. Run `poetry install --no-root`
-4. Run `poetry run python main.py`
-
-(Optional) Use `poetry shell` to activate the virtual environment shell.
+3. Run `poetry install`
+4. Create .env file in the root with the following:
+```bash
+DATABASE_URL=your_db_connection_string
+```
+5. Run `poetry run spottmee-worker`
