@@ -58,6 +58,5 @@ __pypackages__/
 .DS_Store
 Thumbs.db
 
-# Optional: lock file if you want to ignore (usually keep it versioned)
-# poetry.lock
-
+#.env
+*.env
