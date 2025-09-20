@@ -2,9 +2,8 @@ import redis
 import logging
 from rq import Worker, Queue
 
-from ..settings import settings
-
-from .tasks import PROCESS_QUEUE, COMPARE_QUEUE
+from face_embeddings_worker.settings import settings
+from face_embeddings_worker.worker.tasks import PROCESS_QUEUE, COMPARE_QUEUE
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -23,6 +22,3 @@ def start_worker():
             
     except Exception as e:
         logging.critical(f"Failed to start worker: {e}")
-
-if __name__ == '__main__':
-    start_worker()

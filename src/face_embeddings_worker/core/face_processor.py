@@ -3,7 +3,7 @@ import numpy as np
 from insightface.app import FaceAnalysis
 from typing import List
 
-from ..models.embedding import FaceEmbedding
+from face_embeddings_worker.models.embedding import FaceEmbedding
 
 class FaceProcessor:
     def __init__(self):

@@ -7,4 +7,4 @@
 ```bash
 DATABASE_URL=your_db_connection_string
 ```
-5. Run `poetry run spottmee-worker`
+5. Run `poetry run face_embeddings_worker`
