@@ -9,9 +9,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 PROCESS_QUEUE = 'face_embeddings:process'
 COMPARE_QUEUE = 'face_embeddings:compare'
 
+face_processor = FaceProcessor()
+
 def process_and_save_embeddings(image_url: str, id: str):
     logging.info(f"Starting job: ${PROCESS_QUEUE} for id '{id}' from image '{image_url}'")
-    face_processor = FaceProcessor()
 
     with EmbeddingRepository() as db_repo:
         try:
@@ -27,8 +28,6 @@ def process_and_save_embeddings(image_url: str, id: str):
 # comparing already stored face embeddings with unprocessed image
 def compare_face_embeddings(job_id: str, stored_embeddings: list[str], image: bytes, threshold: float = 0.5) -> list[str]:
     logging.info(f"Starting job: {COMPARE_QUEUE} for stored embeddings {stored_embeddings}")
-
-    face_processor = FaceProcessor()
 
     # extract embeddings from incoming raw image bytes
     source_embeddings = face_processor.extract_embeddings(image, "incoming")
