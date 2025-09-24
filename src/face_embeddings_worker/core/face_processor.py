@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from insightface.app import FaceAnalysis
 from typing import List
+import requests
 
 from face_embeddings_worker.models.embedding import FaceEmbedding
 
@@ -10,10 +11,34 @@ class FaceProcessor:
         self.app_insightface = FaceAnalysis(providers=['CPUExecutionProvider'])
         self.app_insightface.prepare(ctx_id=0, det_size=(640, 640))
 
-    def extract_embeddings(self, image_path: str, name_prefix: str) -> list[FaceEmbedding]:
-        img = cv2.imread(image_path)
+    def _read_image_from_url(self, url: str):
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        img_array = np.frombuffer(resp.content, np.uint8)
+        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
         if img is None:
-            print(f"Could not read image from {image_path}")
+            raise ValueError(f"Failed to decode image from URL: {url}")
+        return img
+
+    def extract_embeddings(self, image_input: str | bytes, name_prefix: str) -> list[FaceEmbedding]:
+        # input is a hosted URL
+        if isinstance(image_input, str) and (image_input.startswith("http://") or image_input.startswith("https://")):
+            img = self._read_image_from_url(image_input)
+
+        # input is a local file path
+        elif isinstance(image_input, str):
+            img = cv2.imread(image_input)
+
+        # input is raw bytes
+        elif isinstance(image_input, (bytes, bytearray)):
+            np_arr = np.frombuffer(image_input, np.uint8)
+            img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        else:
+            raise ValueError(f"Invalid input type: {type(image_input)}")
+
+        if img is None:
+            print(f"Could not read image from {image_input}")
             return []
 
         faces = self.app_insightface.get(img)
@@ -30,9 +55,8 @@ class FaceProcessor:
 
         return face_embeddings
 
-    # method to compare faces
-    @staticmethod
     def compare_faces(
+        self,
         source_embeddings: List[FaceEmbedding],
         target_embeddings: List[FaceEmbedding],
         threshold: float = 0.5
