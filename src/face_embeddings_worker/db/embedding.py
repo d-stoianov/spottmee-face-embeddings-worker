@@ -1,15 +1,15 @@
 import psycopg2
 import ast
 
-from ..models.embedding import FaceEmbedding
-from ..settings import settings
+from face_embeddings_worker.models.embedding import FaceEmbedding
+from face_embeddings_worker.settings import settings
 
 class EmbeddingRepository:
     def __init__(self):
         self._conn = None
 
     def __enter__(self):
-        self._conn = psycopg2.connect(settings.database_url)
+        self._conn = psycopg2.connect(settings.embeddings_database_url)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

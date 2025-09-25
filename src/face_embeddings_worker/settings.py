@@ -2,7 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 class Settings(BaseSettings):
-    database_url: str
+    main_database_url: str
+    embeddings_database_url: str
     redis_url: str
 
     model_config = SettingsConfigDict(

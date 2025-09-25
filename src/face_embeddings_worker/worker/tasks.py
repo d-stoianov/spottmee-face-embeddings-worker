@@ -1,8 +1,9 @@
 
 import logging
 
-from face_embeddings_worker.db.repository import EmbeddingRepository
+from face_embeddings_worker.db.embedding import EmbeddingRepository
 from face_embeddings_worker.core.face_processor import FaceProcessor
+from face_embeddings_worker.db.main import MainRepository, PhotoStatus
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -14,16 +15,33 @@ face_processor = FaceProcessor()
 def process_and_save_embeddings(image_url: str, id: str):
     logging.info(f"Starting job: ${PROCESS_QUEUE} for id '{id}' from image '{image_url}'")
 
-    with EmbeddingRepository() as db_repo:
+    with MainRepository() as main_repo, EmbeddingRepository() as db_repo:
         try:
+            main_repo.update_photo_status(id, PhotoStatus.PROCESSING)
+            logging.info(
+                f"Updated photo status for id '{id}' to '{PhotoStatus.PROCESSING}'."
+            )
+
             embeddings = face_processor.extract_embeddings(image_url, id)
             if not embeddings:
                 logging.warning(f"No faces found in image '{image_url}'. Job finished without saving.")
+                main_repo.update_photo_status(id, PhotoStatus.NO_FACES_FOUND)
+                logging.info(
+                    f"Updated photo status for id '{id}' to '{PhotoStatus.PROCESSING}'."
+                )
                 return
             db_repo.save_embeddings(id, embeddings)
             logging.info(f"Successfully processed and saved {len(embeddings)} embeddings for id '{id}'.")
+            main_repo.update_photo_status(id, PhotoStatus.READY)
+            logging.info(
+                f"Updated photo status for id '{id}' to '{PhotoStatus.PROCESSING}'."
+            )
         except Exception as e:
             logging.error(f"Failed to process and save embeddings for id '{id}': {e}")
+            main_repo.update_photo_status(id, PhotoStatus.FAILED)
+            logging.info(
+                f"Updated photo status for id '{id}' to '{PhotoStatus.PROCESSING}'."
+            )
 
 # comparing already stored face embeddings with unprocessed image
 def compare_face_embeddings(job_id: str, stored_embeddings: list[str], image: bytes, threshold: float = 0.5) -> list[str]:
