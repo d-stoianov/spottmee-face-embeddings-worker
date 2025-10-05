@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.log
+.env
+.git
+.gitignore
+.vscode
+__pycache__
+dist
+build
+.cache

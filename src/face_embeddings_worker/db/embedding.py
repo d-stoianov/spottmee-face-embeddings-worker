@@ -9,12 +9,37 @@ class EmbeddingRepository:
         self._conn = None
 
     def __enter__(self):
+        # 1. Establish connection
         self._conn = psycopg2.connect(settings.embeddings_database_url)
+        # 2. Ensure table exists immediately after connecting
+        self._ensure_table_exists()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._conn:
             self._conn.close()
+
+    def _ensure_table_exists(self):
+        """
+        Checks if the face_embeddings table exists. If not, it creates it.
+        """
+        # We need a dedicated cursor for this operation
+        with self._conn.cursor() as cur:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS face_embeddings (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) UNIQUE NOT NULL,
+                embedding TEXT NOT NULL
+            );
+            """
+            try:
+                cur.execute(create_table_query)
+                self._conn.commit()
+                print("Table 'face_embeddings' ensured to exist (created if missing).")
+            except Exception as e:
+                # Handle potential errors during table creation
+                self._conn.rollback()
+                print(f"Error ensuring table existence: {e}")
 
     def save_embeddings(self, name_prefix: str, embeddings: list[FaceEmbedding]):
         with self._conn.cursor() as cur:

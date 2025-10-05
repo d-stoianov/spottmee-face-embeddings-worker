@@ -15,7 +15,7 @@ class MainRepository:
         self._conn = None
 
     def __enter__(self):
-        self._conn = psycopg2.connect(settings.main_database_url)
+        self._conn = psycopg2.connect(settings.database_url)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
